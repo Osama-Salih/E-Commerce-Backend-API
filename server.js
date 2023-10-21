@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const cors = require('cors');
 const compression = require('compression');
+const { webhookCheckout } = require('./services/orderService');
 
 dotenv.config({ path: './config.env' });
 const dbConnection = require('./config/database');
@@ -36,6 +37,12 @@ if (process.env.NODE_ENV === 'development') {
 // Mount Routes
 mountRoutes(app);
 
+// Checkout webhook
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout,
+);
 app.all('*', (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
