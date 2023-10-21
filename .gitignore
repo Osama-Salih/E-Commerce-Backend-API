@@ -1,0 +1,4 @@
+node_moduls/
+config.env
+node_modules
+.history
