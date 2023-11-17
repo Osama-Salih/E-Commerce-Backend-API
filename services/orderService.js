@@ -179,7 +179,7 @@ const createCardOrder = async (session) => {
   }
 };
 
-// @desc   This webhook will run when stripe payment success paid
+// @desc   This webhook will run when stripe payment success paid.
 // @route  POST /webhook-checkout
 // @access Protecte/user
 exports.webhookCheckout = async (req, res) => {
