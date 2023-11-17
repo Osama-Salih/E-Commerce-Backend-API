@@ -26,7 +26,6 @@ app.use(cors()); //Enable other domains to access your application
 app.options('*', cors());
 
 app.use(compression()); // compress all responses
-app.use(express.json());
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 // Checkout webhook
@@ -35,6 +34,7 @@ app.post(
   express.raw({ type: 'application/json' }),
   webhookCheckout,
 );
+app.use(express.json());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
