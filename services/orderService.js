@@ -4,10 +4,25 @@ const ApiError = require('../utils/ApiError');
 const factory = require('./handlersFactory');
 const Product = require('../models/productModule');
 const Cart = require('../models/cartModule');
+const User = require('../models/userModule');
 const Order = require('../models/orderModule');
 
+//@desc decrement product quantity, increment product sold
+const updateProductSales = async (cartItems, cartId) => {
+  const blukOption = cartItems.map((item) => ({
+    updateOne: {
+      filter: { _id: item.product },
+      update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
+    },
+  }));
+  await Product.bulkWrite(blukOption, {});
+
+  // Clear cart depend on cartId
+  await Cart.findByIdAndDelete(cartId);
+};
+
 // @desc   Create cash order
-// @route POST /api/v1/orders/cartId
+// @route  POST /api/v1/orders/cartId
 // @access Protecte/user
 exports.createCashOrder = asyncHandler(async (req, res, next) => {
   // App settings
@@ -30,21 +45,12 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
   const order = await Order.create({
     user: req.user._id,
     cartItems: cart.cartItems,
-    shippingAdddress: req.body.shippingAdddress,
+    shippingAddress: req.body.shippingAdddress,
     totalOrderPrice,
   });
   // 4) After creating order, decrement product quantity, increment product sold
   if (order) {
-    const blukOption = cart.cartItems.map((item) => ({
-      updateOne: {
-        filter: { _id: item.product },
-        update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
-      },
-    }));
-    await Product.bulkWrite(blukOption, {});
-
-    // 5) Clear cart depend on cartId
-    await Cart.findByIdAndDelete(req.params.cartId);
+    updateProductSales(cart.cartItems, req.params.cartId);
   }
 
   res.status(201).json({
@@ -59,16 +65,16 @@ exports.filterOrdersForLoggedUser = asyncHandler(async (req, res, next) => {
 });
 
 // @desc   Get all orders
-// @route GET /api/v1/orders
+// @route  GET /api/v1/orders
 // @access Protecte/user-admin-manager
 exports.getAllOrders = factory.getAll(Order);
 
 // @desc   Get specific order by id
-// @route GET /api/v1/orders/:id
+// @route  GET /api/v1/orders/:id
 // @access Protecte/user-admin-manager
 exports.getSpecificOrder = factory.getOne(Order);
 
-// @desc   update order paid status to paid
+// @desc   Update order paid status to paid
 // @route  PUT /api/v1/orders/:id/pay
 // @access Protecte/admin-manager
 exports.updateOrderStatusToPaid = asyncHandler(async (req, res, next) => {
@@ -86,7 +92,7 @@ exports.updateOrderStatusToPaid = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: updatedOrder });
 });
 
-// @desc   update order delivered status
+// @desc   Update order delivered status
 // @route  PUT /api/v1/orders/:id/delivered
 // @access Protecte/admin-manager
 exports.updateOrderStatusToDelivered = asyncHandler(async (req, res, next) => {
@@ -149,7 +155,34 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: 'success', session });
 });
 
-exports.webhookCheckout = async (req, res, next) => {
+const createCardOrder = async (session) => {
+  const cartId = session.client_reference_id;
+  const orderPrice = session.amount_total / 100;
+  const shippingAddress = session.metadata;
+
+  const cart = await Cart.findById(cartId);
+  const user = await User.findOne({ email: session.customer_email });
+
+  // Create order with payment Method Type card
+  const order = await Order.create({
+    user: user._id,
+    cartItems: cart.cartItems,
+    shippingAddress,
+    totalOrderPrice: orderPrice,
+    paymentMethodPrice: 'card',
+    isPaid: 'true',
+    paidAt: Date.now(),
+  });
+
+  if (order) {
+    updateProductSales(cart.cartItems, cartId);
+  }
+};
+
+// @desc   This webhook will run when stripe payment success paid
+// @route  POST /webhook-checkout
+// @access Protecte/user
+exports.webhookCheckout = async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
   let event;
@@ -165,7 +198,8 @@ exports.webhookCheckout = async (req, res, next) => {
   }
 
   if (event.type === 'checkout.session.completed') {
-    console.log('Create order here');
-    console.log(event.data.object.client_reference_id);
+    createCardOrder(event.data.object);
   }
+
+  res.status(200).json({ reseved: true });
 };
