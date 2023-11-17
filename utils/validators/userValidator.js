@@ -1,6 +1,5 @@
 const { check, body } = require('express-validator');
 const slugify = require('slugify');
-// eslint-disable-next-line import/no-extraneous-dependencies
 const bcrypt = require('bcryptjs');
 const validationMiddleware = require('../../middlewares/validatorMiddlewar');
 const User = require('../../models/userModule');

@@ -38,21 +38,3 @@ exports.createOrderValidator = [
     .withMessage('Invalid postal code, only accept Saudi Arabian postal codes'),
   validationMiddleware,
 ];
-
-// exports.updateBrandValidator = [
-//   check('id').isMongoId().withMessage('Invalid brand id format'),
-//   body('name')
-//     .optional()
-//     .custom((val, { req }) => {
-//       if (req.body.name) {
-//         req.body.slug = slugify(val);
-//         return true;
-//       }
-//     }),
-//   validationMiddleware,
-// ];
-
-// exports.deleteBrandValidator = [
-//   check('id').isMongoId().withMessage('Invalid brand id format'),
-//   validationMiddleware,
-// ];
