@@ -29,6 +29,13 @@ app.use(compression()); // compress all responses
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'uploads')));
 
+// Checkout webhook
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout,
+);
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
   console.log(`mode: ${process.env.NODE_ENV}`);
@@ -37,12 +44,6 @@ if (process.env.NODE_ENV === 'development') {
 // Mount Routes
 mountRoutes(app);
 
-// Checkout webhook
-app.post(
-  '/webhook-checkout',
-  express.raw({ type: 'application/json' }),
-  webhookCheckout,
-);
 app.all('*', (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
