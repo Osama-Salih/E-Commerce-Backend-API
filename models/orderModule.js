@@ -61,5 +61,6 @@ orderSchema.pre(/^find/, function (next) {
   }).populate({ path: 'cartItems.product', select: 'title imageCover' });
   next();
 });
+
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

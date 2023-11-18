@@ -122,7 +122,10 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   const cart = await Cart.findById(req.params.cartId);
   if (!cart) {
     return next(
-      new ApiError(`There is no such cart with this id ${req.params.cartId}`),
+      new ApiError(
+        `There is no such cart with this id ${req.params.cartId}`,
+        404,
+      ),
     );
   }
   // 2) Get order price depend on cart price "Check if coupon apply"
@@ -164,19 +167,26 @@ const createCardOrder = async (session) => {
   const user = await User.findOne({ email: session.customer_email });
 
   // Create order with payment Method Type card
-  const order = await Order.create({
-    user: user._id,
-    cartItems: cart.cartItems,
-    totalOrderPrice: orderPrice,
-    paymentMethodPrice: 'card',
-    isPaid: 'true',
-    paidAt: Date.now(),
-    shippingAddress,
-  });
-
-  if (order) {
-    updateProductSales(cart.cartItems, cartId);
+  try {
+    const order = await Order.create({
+      user: user._id,
+      cartItems: cart.cartItems,
+      totalOrderPrice: orderPrice,
+      paymentMethodPrice: 'card',
+      isPaid: 'true',
+      paidAt: Date.now(),
+      shippingAddress,
+    });
+    console.log('Order created:', order);
+  } catch (error) {
+    console.error('Error creating order:', error);
   }
+  // }
+
+  // After creating order, decrement product quantity, increment product sold
+  // if (order) {
+  //   updateProductSales(cart.cartItems, cartId);
+  // }
 };
 
 // @desc   This webhook will run when stripe payment success paid.
