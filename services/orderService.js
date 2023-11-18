@@ -45,7 +45,7 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
   const order = await Order.create({
     user: req.user._id,
     cartItems: cart.cartItems,
-    shippingAddress: req.body.shippingAdddress,
+    shippingAddress: req.body.shippingAddress,
     totalOrderPrice,
   });
   // 4) After creating order, decrement product quantity, increment product sold
