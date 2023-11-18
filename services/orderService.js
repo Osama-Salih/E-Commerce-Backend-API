@@ -167,11 +167,11 @@ const createCardOrder = async (session) => {
   const order = await Order.create({
     user: user._id,
     cartItems: cart.cartItems,
-    shippingAddress,
     totalOrderPrice: orderPrice,
     paymentMethodPrice: 'card',
     isPaid: 'true',
     paidAt: Date.now(),
+    shippingAddress,
   });
 
   if (order) {
