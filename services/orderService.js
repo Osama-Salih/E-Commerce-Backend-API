@@ -167,26 +167,21 @@ const createCardOrder = async (session) => {
   const user = await User.findOne({ email: session.customer_email });
 
   // Create order with payment Method Type card
-  try {
-    const order = await Order.create({
-      user: user._id,
-      cartItems: cart.cartItems,
-      totalOrderPrice: orderPrice,
-      paymentMethodPrice: 'card',
-      isPaid: 'true',
-      paidAt: Date.now(),
-      shippingAddress,
-    });
-    console.log('Order created:', order);
-  } catch (error) {
-    console.error('Error creating order:', error);
-  }
-  // }
+
+  const order = await Order.create({
+    user: user._id,
+    cartItems: cart.cartItems,
+    totalOrderPrice: orderPrice,
+    paymentMethodPrice: 'card',
+    isPaid: 'true',
+    paidAt: Date.now(),
+    shippingAddress,
+  });
 
   // After creating order, decrement product quantity, increment product sold
-  // if (order) {
-  //   updateProductSales(cart.cartItems, cartId);
-  // }
+  if (order) {
+    updateProductSales(cart.cartItems, cartId);
+  }
 };
 
 // @desc   This webhook will run when stripe payment success paid.

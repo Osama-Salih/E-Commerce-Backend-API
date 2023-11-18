@@ -17,21 +17,19 @@ exports.getOrderValidator = [
 ];
 
 exports.createOrderValidator = [
-  body('shippingAdddress').optional(),
-  body('shippingAdddress.details')
+  body('shippingAddress').optional(),
+  body('shippingAddress.details')
     .notEmpty()
     .withMessage('This field is required'),
-  body('shippingAdddress.phone')
+  body('shippingAddress.phone')
     .notEmpty()
     .withMessage('This field is required')
     .isMobilePhone('ar-SA')
     .withMessage('Invalid phone number only accept Saudi Arabian phone number'),
 
-  body('shippingAdddress.city')
-    .notEmpty()
-    .withMessage('This field is required'),
+  body('shippingAddress.city').notEmpty().withMessage('This field is required'),
 
-  body('shippingAdddress.postalCode')
+  body('shippingAddress.postalCode')
     .notEmpty()
     .withMessage('This field is required')
     .isPostalCode('SA')
