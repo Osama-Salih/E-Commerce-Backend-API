@@ -37,7 +37,7 @@ const orderSchema = new mongoose.Schema(
     totalOrderPrice: Number,
     paymentMethodPrice: {
       type: 'String',
-      enum: ['cart', 'cash'],
+      enum: ['card', 'cash'],
       default: 'cash',
     },
     isPaid: {

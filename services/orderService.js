@@ -163,11 +163,7 @@ const createCardOrder = async (session) => {
   const cart = await Cart.findById(cartId);
   const user = await User.findOne({ email: session.customer_email });
 
-  console.log(`cartId: ${session.client_reference_id}.....`);
-  console.log(`orderPrice: ${session.amount_total / 100}...`);
-  console.log(`orderPrice: ${session.metadata}...`);
-  console.log(`cart: ${cart}...`);
-  console.log(`user: ${user}...`);
+  console.log(`shippingAddress: ${session.metadata}...`);
   // Create order with payment Method Type card
   const order = await Order.create({
     user: user._id,
