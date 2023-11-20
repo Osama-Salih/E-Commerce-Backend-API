@@ -131,7 +131,7 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res) => {
     },
   );
   // 2) Generate token
-  const token = createToken(user._id);
+  const token = createToken(user._id, res);
   res.status(200).json({
     status: 'success',
     data: {

@@ -5,6 +5,11 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const cors = require('cors');
 const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+
 const { webhookCheckout } = require('./services/orderService');
 
 dotenv.config({ path: './config.env' });
@@ -28,18 +33,44 @@ app.options('*', cors());
 app.use(compression()); // compress all responses
 app.use(express.static(path.join(__dirname, 'uploads')));
 
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+  console.log(`mode: ${process.env.NODE_ENV}`);
+}
+
+// SECURITY
+app.use(express.json({ limit: '20kb' }));
+
+// To apply data sanitization
+app.use(mongoSanitize());
+app.use(helmet());
+// Limit each IP to 100 requests per `window` (here, per 15 minutes).
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+});
+// Apply the rate limiting middleware to all requests.
+app.use('/api', limiter);
+
+// Middleware to protect against HTTP Parameter Pollution attacks
+app.use(
+  hpp({
+    whitelist: [
+      'quantity',
+      'ratingsAverage',
+      'sold',
+      'price',
+      'ratingsQuantity',
+    ],
+  }),
+);
+
 // Checkout webhook
 app.post(
   '/webhook-checkout',
   express.raw({ type: 'application/json' }),
   webhookCheckout,
 );
-app.use(express.json());
-
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-  console.log(`mode: ${process.env.NODE_ENV}`);
-}
 
 // Mount Routes
 mountRoutes(app);

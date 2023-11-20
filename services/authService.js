@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const ApiError = require('../utils/ApiError');
 const sendEmail = require('../utils/sendEmail');
 const createToken = require('../utils/createToken');
+const { sanitizeUser } = require('../utils/sanitizeData');
 const User = require('../models/userModule');
 
 // @desc    Signup
@@ -19,12 +20,12 @@ exports.signup = asyncHandler(async (req, res) => {
   });
 
   // 2 generate token
-  const token = createToken(user._id);
+  const token = createToken(user._id, res);
 
   res.status(201).json({
     status: 'success',
     data: {
-      user,
+      user: sanitizeUser(user),
       token,
     },
   });
@@ -40,12 +41,12 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ApiError('Invalid email or password', 401));
   }
   // 3. generate token
-  const token = createToken(user._id);
+  const token = createToken(user._id, res);
   // 4. send response to client side
   res.status(200).json({
     status: 'success',
     data: {
-      user,
+      user: sanitizeUser(user),
       token,
     },
   });
@@ -219,6 +220,6 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 
   await user.save();
   // 3) if everything is ok, generat token
-  const token = createToken(user._id);
+  const token = createToken(user._id, res);
   res.status(200).json({ status: 'success', token });
 });

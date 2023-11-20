@@ -51,7 +51,6 @@ exports.loginValidator = [
     .withMessage('email required')
     .isEmail()
     .withMessage('Invalid email address'),
-
   check('password')
     .notEmpty()
     .withMessage('password required')
